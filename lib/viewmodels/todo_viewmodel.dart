@@ -2,60 +2,75 @@ import 'package:flutter/material.dart';
 import '../models/todo_item.dart';
 
 class TodoViewmodel extends ChangeNotifier {
-  final List<TodoItem> _tasks = [];
+  final dynamic _repository; // Can be TodoRepository or InMemoryTodoRepository
 
-  List<TodoItem> get tasks => List.unmodifiable(_tasks);
+  TodoViewmodel(this._repository);
 
-  // create a copy with unique id using uuid externally
+  List<TodoItem> get tasks => _repository.getAllTodos();
+
+  /// Add a new task and persist it
   void addTask(TodoItem task) {
     if (task.title.trim().isEmpty) return;
-    _tasks.add(task);
+    _repository.addTodo(task);
     notifyListeners();
   }
 
+  /// Update an existing task
   void updateTask(TodoItem updated) {
-    final index = _tasks.indexWhere((t) => t.id == updated.id);
-    if (index != -1) {
-      _tasks[index] = updated;
+    final existing = _repository.getTodoById(updated.id);
+    if (existing != null) {
+      _repository.updateTodo(updated);
       notifyListeners();
     }
   }
 
+  /// Toggle task completion status
   void toggleCompletion(String id) {
-    final index = _tasks.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      _tasks[index].isDone = !_tasks[index].isDone;
+    final task = _repository.getTodoById(id);
+    if (task != null) {
+      task.isDone = !task.isDone;
+      _repository.updateTodo(task);
       notifyListeners();
     }
   }
 
+  /// Delete a task
   void deleteTask(String id) {
-    _tasks.removeWhere((t) => t.id == id);
+    _repository.deleteTodo(id);
     notifyListeners();
   }
 
-  // Filtering helpers
+  /// Get tasks for a specific date
   List<TodoItem> tasksForDate(DateTime date) {
-    return _tasks.where((t) {
-      if (t.dueDate == null) return false;
-      return t.dueDate!.year == date.year &&
-          t.dueDate!.month == date.month &&
-          t.dueDate!.day == date.day;
-    }).toList();
+    return _repository.getTodosForDate(date);
   }
 
+  /// Get count of tasks by status
   Map<TodoStatus, int> countByStatus() {
     final counts = <TodoStatus, int>{};
     for (var status in TodoStatus.values) {
       counts[status] = 0;
     }
-    for (var t in _tasks) {
-      counts[t.status] = (counts[t.status] ?? 0) + 1;
+    final statusCounts = _repository.countByStatus();
+    for (var statusValue in statusCounts.keys) {
+      final status = TodoStatus.values[statusValue];
+      counts[status] = statusCounts[statusValue] ?? 0;
     }
     return counts;
   }
 
+  /// Get tasks by status
   List<TodoItem> tasksByStatus(TodoStatus status) {
-    return _tasks.where((t) => t.status == status).toList();
+    return _repository.getTodosByStatus(status.index);
+  }
+
+  /// Get completed tasks
+  List<TodoItem> getCompletedTasks() {
+    return _repository.getCompletedTodos();
+  }
+
+  /// Get pending tasks
+  List<TodoItem> getPendingTasks() {
+    return _repository.getPendingTodos();
   }
 }
