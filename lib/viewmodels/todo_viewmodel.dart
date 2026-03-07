@@ -73,4 +73,36 @@ class TodoViewmodel extends ChangeNotifier {
   List<TodoItem> getPendingTasks() {
     return _repository.getPendingTodos();
   }
+
+  /// Get top N tasks sorted by priority and status
+  List<TodoItem> getTopTasks({int limit = 3}) {
+    final allTasks = tasks;
+    
+    // Sort by status priority (pending > inProgress > review > completed)
+    // Then by priority (high > medium > low)
+    allTasks.sort((a, b) {
+      // First sort by status (active tasks first)
+      final statusOrder = {
+        TodoStatus.pending: 0,
+        TodoStatus.inProgress: 1,
+        TodoStatus.review: 2,
+        TodoStatus.completed: 3,
+      };
+      final statusCompare = (statusOrder[a.status] ?? 3).compareTo(statusOrder[b.status] ?? 3);
+      if (statusCompare != 0) return statusCompare;
+      
+      // Then sort by priority (high > medium > low)
+      final priorityOrder = {Priority.high: 0, Priority.medium: 1, Priority.low: 2};
+      return (priorityOrder[a.priority] ?? 2).compareTo(priorityOrder[b.priority] ?? 2);
+    });
+    
+    return allTasks.take(limit).toList();
+  }
+
+  /// Get all tasks with due dates sorted by due date
+  List<TodoItem> getTasksSortedByDueDate() {
+    final allTasks = tasks.where((t) => t.dueDate != null).toList();
+    allTasks.sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+    return allTasks;
+  }
 }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/todo_item.dart';
 import '../viewmodels/todo_viewmodel.dart';
 import 'add_edit_task_screen.dart';
+import 'task_schedule_screen.dart';
 
 class TaskListScreen extends StatelessWidget {
   const TaskListScreen({super.key});
@@ -183,6 +184,37 @@ class TaskListScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Your Tasks',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1B1C1F),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const TaskScheduleScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'View All',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFC7DA75),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             ...tasks.take(3).map((task) {
               final bg = _surfaceColorForPriority(task.priority);
               final accent = _accentColorForStatus(task.status);
