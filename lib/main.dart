@@ -1,31 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/repositories/in_memory_todo_repository.dart';
-import 'data/repositories/todo_repository.dart';
-import 'models/todo_item.dart';
-import 'objectbox.g.dart';
 import 'viewmodels/todo_viewmodel.dart';
 import 'views/home_screen.dart';
 
-late Store _store;
-bool _objectBoxInitialized = false;
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize ObjectBox on native platforms (not web, not test)
-  if (!kIsWeb && !kDebugMode) {
-    try {
-      _store = openStore();
-      _objectBoxInitialized = true;
-    } catch (e) {
-      debugPrint('Error initializing ObjectBox: $e');
-      _objectBoxInitialized = false;
-    }
-  }
-
+void main() {
   runApp(const TodoApp());
 }
 
@@ -36,17 +16,20 @@ class TodoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) {
-        // Use platform-specific repository
-        dynamic repository;
-        if (kIsWeb || !_objectBoxInitialized) {
-          // Web platform or test environment uses in-memory storage
-          repository = InMemoryTodoRepository();
-        } else {
-          // Native platforms use ObjectBox for persistent storage
-          final todoBox = _store.box<TodoItem>();
-          repository = TodoRepository(todoBox);
-        }
-        return TodoViewmodel(repository);
+        // TODO: Implement platform-specific ObjectBox initialization
+        // Currently using in-memory repository for all platforms as a workaround
+        // to avoid conditional import compilation errors.
+        // 
+        // For native platforms (Android, iOS, macOS, Linux, Windows):
+        // - Initialize ObjectBox store in main()
+        // - Use TodoRepository with ObjectBox for persistent storage
+        // 
+        // For web platform:
+        // - Continue using InMemoryTodoRepository (ObjectBox requires dart:ffi)
+        //
+        // See: data/repositories/todo_repository.dart (already implemented)
+        // See: GitHub issue #3 for tracking
+        return TodoViewmodel(InMemoryTodoRepository());
       },
       child: MaterialApp(
         title: 'Todo Manager',
